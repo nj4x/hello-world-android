@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Hello World</string>
+    <string name="enter_username">Enter Username</string>
+    <string name="username_hint">Username</string>
+    <string name="next">Next</string>
+    <string name="result_title">Result from Web</string>
+    <string name="back">Back to Start</string>
+</resources>
