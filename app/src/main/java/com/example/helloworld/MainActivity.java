@@ -1,5 +1,6 @@
 package com.example.helloworld;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -102,7 +103,13 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
         // Check if Custom Tabs are supported
         if (!BrowserUtils.isCustomTabsSupported(this)) {
             Toast.makeText(this, "Custom Tabs not supported, opening in browser", Toast.LENGTH_SHORT).show();
-            startActivity(BrowserUtils.getFallbackIntent(uri));
+            // Use fallback intent with proper error handling
+            Intent fallbackIntent = BrowserUtils.getFallbackIntent(uri);
+            if (BrowserUtils.canHandleIntent(this, fallbackIntent)) {
+                startActivity(fallbackIntent);
+            } else {
+                Toast.makeText(this, "No browser available to handle the URL", Toast.LENGTH_LONG).show();
+            }
             return;
         }
 
@@ -118,18 +125,32 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
 
         // Add ephemeral browsing if requested
         if (isEphemeral) {
+            // First try quick synchronous check (Chrome 137+)
+            if (BrowserUtils.isEphemeralBrowsingSupported(this)) {
+                try {
+                    CustomTabsIntent customTabsIntent = builder
+                            .setEphemeralBrowsingEnabled(true)
+                            .build();
+                    customTabsIntent.launchUrl(this, uri);
+                    Toast.makeText(this, "Opened with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                    return;
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            
+            // Fallback to async check for older versions
             BrowserUtils.checkEphemeralBrowsingSupport(this, new BrowserUtils.EphemeralSupportCallback() {
                 @Override
                 public void onResult(boolean isSupported) {
                     runOnUiThread(() -> {
                         if (isSupported) {
                             try {
-                                // Use the official API for ephemeral browsing
                                 CustomTabsIntent customTabsIntent = builder
                                         .setEphemeralBrowsingEnabled(true)
                                         .build();
                                 customTabsIntent.launchUrl(MainActivity.this, uri);
-                                Toast.makeText(MainActivity.this, "Opened with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Opened with ephemeral browsing (via service)", Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
                                 Toast.makeText(MainActivity.this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 launchRegularCustomTab(builder, uri);
@@ -157,10 +178,22 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
     private void launchRegularCustomTab(CustomTabsIntent.Builder builder, Uri uri) {
         try {
             CustomTabsIntent customTabsIntent = builder.build();
+            
+            // Set the package name for better reliability
+            String packageName = BrowserUtils.getCustomTabsPackage(this);
+            if (packageName != null) {
+                customTabsIntent.intent.setPackage(packageName);
+            }
+            
             customTabsIntent.launchUrl(this, uri);
         } catch (Exception e) {
             Toast.makeText(this, "Failed to open Custom Tab, opening in browser", Toast.LENGTH_SHORT).show();
-            startActivity(BrowserUtils.getFallbackIntent(uri));
+            Intent fallbackIntent = BrowserUtils.getFallbackIntent(uri);
+            if (BrowserUtils.canHandleIntent(this, fallbackIntent)) {
+                startActivity(fallbackIntent);
+            } else {
+                Toast.makeText(this, "No browser available to handle the URL", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -187,18 +220,32 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
 
         // Add ephemeral browsing if requested
         if (isEphemeral) {
+            // First try quick synchronous check (Chrome 137+)
+            if (BrowserUtils.isEphemeralBrowsingSupported(this)) {
+                try {
+                    CustomTabsIntent customTabsIntent = builder
+                            .setEphemeralBrowsingEnabled(true)
+                            .build();
+                    customTabsIntent.launchUrl(this, uri);
+                    Toast.makeText(this, "Opened Auth-optimized Tab with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                    return;
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            
+            // Fallback to async check for older versions
             BrowserUtils.checkEphemeralBrowsingSupport(this, new BrowserUtils.EphemeralSupportCallback() {
                 @Override
                 public void onResult(boolean isSupported) {
                     runOnUiThread(() -> {
                         if (isSupported) {
                             try {
-                                // Use the official API for ephemeral browsing with auth-optimized tab
                                 CustomTabsIntent customTabsIntent = builder
                                         .setEphemeralBrowsingEnabled(true)
                                         .build();
                                 customTabsIntent.launchUrl(MainActivity.this, uri);
-                                Toast.makeText(MainActivity.this, "Opened Auth-optimized Tab with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Opened Auth-optimized Tab with ephemeral browsing (via service)", Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
                                 Toast.makeText(MainActivity.this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 launchRegularAuthTab(builder, uri);
@@ -226,6 +273,13 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
     private void launchRegularAuthTab(CustomTabsIntent.Builder builder, Uri uri) {
         try {
             CustomTabsIntent customTabsIntent = builder.build();
+            
+            // Set the package name for better reliability
+            String packageName = BrowserUtils.getCustomTabsPackage(this);
+            if (packageName != null) {
+                customTabsIntent.intent.setPackage(packageName);
+            }
+            
             customTabsIntent.launchUrl(this, uri);
             Toast.makeText(this, "Opened Auth-optimized Tab", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
