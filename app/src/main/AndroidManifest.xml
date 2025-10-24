@@ -47,15 +47,6 @@
                 <data android:scheme="helloworld" 
                       android:host="result" />
             </intent-filter>
-            
-            <!-- Alternative Result URL Scheme without host -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="helloworld" 
-                      android:pathPrefix="/result" />
-            </intent-filter>
         </activity>
     </application>
 
