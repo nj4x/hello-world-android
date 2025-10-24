@@ -1,7 +1,9 @@
 package com.example.helloworld;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -14,7 +16,6 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
 
     private UsernameFragment usernameFragment;
     private ResultFragment resultFragment;
-    private String currentUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
     }
 
     @Override
-    protected void onNewIntent(android.content.Intent intent) {
+    protected void onNewIntent(@NonNull android.content.Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         handleIncomingIntent();
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
             String webResult = data.getQueryParameter("result");
             String username = data.getQueryParameter("username");
 
-            Toast.makeText(this, "Received URL: " + data.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Received URL: " + data, Toast.LENGTH_LONG).show();
 
             if (webResult != null && username != null) {
                 // Returning from web app with result
@@ -62,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
 
     @Override
     public void onUsernameSubmitted(String username) {
-        currentUsername = username;
         Toast.makeText(this, "Hello " + username + "! Opening web page...", Toast.LENGTH_SHORT).show();
         openWebApp(username);
     }
@@ -85,17 +85,15 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
     private void openWebApp(String username) {
         // URL to your deployed Next.js web app on Vercel
 //        String webAppUrl = "https://hello-world-web-ivory.vercel.app/process?username=" + username + "&returnApp=helloworld://result";
-        String webAppUrl = "https://stg-account.samsung.com/business/iam/oauth2/authorize" +
-                "?login_hint=" + username +
-                "&response_type=code" +
-                "&state=0oawjam8o0Fb94d6d697" +
-                "&client_id=m5ri0onns6" +
-                "&redirect_uri=helloworld://result" +
-                "&scope=offline_access+openid";
+        
+        // Build OAuth URL using configuration class for better maintainability
+        String webAppUrl = OAuthConfig.buildAuthUrl(username);
 
         CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
-                .setToolbarColor(ContextCompat.getColor(this, R.color.purple_500))
-                .setSecondaryToolbarColor(ContextCompat.getColor(this, R.color.purple_700))
+                .setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder()
+                        .setToolbarColor(ContextCompat.getColor(this, R.color.purple_500))
+                        .setSecondaryToolbarColor(ContextCompat.getColor(this, R.color.purple_700))
+                        .build())
                 .setStartAnimations(this, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
                 .setExitAnimations(this, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
                 .setShowTitle(true)

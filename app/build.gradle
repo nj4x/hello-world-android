@@ -9,9 +9,15 @@ android {
     defaultConfig {
         applicationId "com.example.helloworld"
         minSdk 26
-        targetSdk 36
         versionCode 1
         versionName "1.0"
+        
+        // OAuth Configuration
+        buildConfigField "String", "OAUTH_BASE_URL", '"https://stg-account.samsung.com/business/iam/oauth2/authorize"'
+        buildConfigField "String", "OAUTH_CLIENT_ID", '"m5ri0onns6"'
+        buildConfigField "String", "OAUTH_STATE", '"0oawjam8o0Fb94d6d697"'
+        buildConfigField "String", "OAUTH_REDIRECT_URI", '"helloworld://result"'
+        buildConfigField "String", "OAUTH_SCOPE", '"offline_access+openid"'
     }
 
     buildTypes {
@@ -19,6 +25,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    
+    buildFeatures {
+        buildConfig true
     }
     
     compileOptions {
