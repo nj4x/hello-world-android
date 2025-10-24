@@ -55,10 +55,10 @@ public class ResultFragment extends Fragment {
     
     private void updateUI(String username, String webResult) {
         if (usernameText != null) {
-            usernameText.setText("Username: " + username);
+            usernameText.setText(getString(R.string.username_label, username));
         }
         if (resultText != null) {
-            resultText.setText("Result from web: " + webResult);
+            resultText.setText(getString(R.string.result_label, webResult));
         }
     }
 }

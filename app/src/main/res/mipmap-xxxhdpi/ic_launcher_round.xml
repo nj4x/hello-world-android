@@ -6,4 +6,9 @@
             <solid android:color="@color/white"/>
         </shape>
     </foreground>
+    <monochrome>
+        <shape android:shape="oval">
+            <solid android:color="@color/white"/>
+        </shape>
+    </monochrome>
 </adaptive-icon>
