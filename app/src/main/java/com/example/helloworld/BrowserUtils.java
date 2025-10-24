@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.browser.customtabs.CustomTabsClient;
 
@@ -24,6 +25,7 @@ public class BrowserUtils {
      */
     public static boolean isDefaultBrowserCustomTabsSupported(Context context) {
         String packageName = CustomTabsClient.getPackageName(context, Collections.emptyList());
+        Log.d("BrowserUtils", "Default browser Custom Tabs package: " + packageName);
         return packageName != null;
     }
     
@@ -49,6 +51,7 @@ public class BrowserUtils {
         
         // Get a package that supports Custom Tabs
         String packageName = CustomTabsClient.getPackageName(context, packageNames, true /* ignore default */);
+        Log.d("BrowserUtils", "Custom Tabs package (non-default): " + packageName);
         return packageName != null;
     }
     
@@ -59,6 +62,7 @@ public class BrowserUtils {
         // First try default browser
         String packageName = CustomTabsClient.getPackageName(context, Collections.emptyList());
         if (packageName != null) {
+            Log.d("BrowserUtils", "Using default browser package: " + packageName);
             return packageName;
         }
         
@@ -74,7 +78,9 @@ public class BrowserUtils {
         }
         
         // Get a package that supports Custom Tabs
-        return CustomTabsClient.getPackageName(context, packageNames, true /* ignore default */);
+        String customTabsPackage = CustomTabsClient.getPackageName(context, packageNames, true /* ignore default */);
+        Log.d("BrowserUtils", "Using non-default browser package: " + customTabsPackage);
+        return customTabsPackage;
     }
     
     /**
@@ -84,15 +90,19 @@ public class BrowserUtils {
     public static boolean isAuthTabSupported(Context context) {
         String packageName = getCustomTabsPackage(context);
         if (packageName == null) {
+            Log.d("BrowserUtils", "No Custom Tabs package found for Auth Tab support check");
             return false;
         }
         
         try {
             // Try to check if Auth Tab is supported (API may not be available yet)
             // For now, we assume it's supported if Custom Tabs are supported
-            return isCustomTabsSupported(context);
+            boolean supported = isCustomTabsSupported(context);
+            Log.d("BrowserUtils", "Auth Tab supported: " + supported);
+            return supported;
         } catch (Exception e) {
             // If the API is not available, assume not supported
+            Log.d("BrowserUtils", "Auth Tab support check failed", e);
             return false;
         }
     }
@@ -103,6 +113,7 @@ public class BrowserUtils {
     public static void checkEphemeralBrowsingSupport(Context context, EphemeralSupportCallback callback) {
         String packageName = getCustomTabsPackage(context);
         if (packageName == null) {
+            Log.d("BrowserUtils", "No Custom Tabs provider found for ephemeral browsing check");
             callback.onError("No Custom Tabs provider found");
             return;
         }
@@ -110,8 +121,10 @@ public class BrowserUtils {
         try {
             // First try the static method (Chrome 137+)
             boolean isSupported = CustomTabsClient.isEphemeralBrowsingSupported(context, packageName);
+            Log.d("BrowserUtils", "Ephemeral browsing supported (static): " + isSupported);
             callback.onResult(isSupported);
         } catch (Exception e) {
+            Log.d("BrowserUtils", "Static ephemeral browsing check failed, trying service method", e);
             // If static API is not available, try service connection method
             checkEphemeralBrowsingSupportViaService(context, packageName, callback);
         }
@@ -125,6 +138,7 @@ public class BrowserUtils {
         // The CustomTabsSession.isEphemeralBrowsingSupported method is not available yet
         // in the current browser library version. For now, we'll assume not supported
         // when the static API fails.
+        Log.d("BrowserUtils", "Ephemeral browsing not supported via service (API not available)");
         callback.onResult(false);
     }
     
@@ -135,14 +149,18 @@ public class BrowserUtils {
     public static boolean isEphemeralBrowsingSupported(Context context) {
         String packageName = getCustomTabsPackage(context);
         if (packageName == null) {
+            Log.d("BrowserUtils", "No Custom Tabs package found for synchronous ephemeral browsing check");
             return false;
         }
         
         try {
-            return CustomTabsClient.isEphemeralBrowsingSupported(context, packageName);
+            boolean supported = CustomTabsClient.isEphemeralBrowsingSupported(context, packageName);
+            Log.d("BrowserUtils", "Ephemeral browsing supported (synchronous): " + supported);
+            return supported;
         } catch (Exception e) {
             // If the static API is not available, return false
             // For a complete check, use the async method above
+            Log.d("BrowserUtils", "Synchronous ephemeral browsing check failed", e);
             return false;
         }
     }
@@ -162,6 +180,8 @@ public class BrowserUtils {
     public static boolean canHandleIntent(Context context, Intent intent) {
         PackageManager packageManager = context.getPackageManager();
         List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
-        return resolveInfos != null && !resolveInfos.isEmpty();
+        boolean canHandle = resolveInfos != null && !resolveInfos.isEmpty();
+        Log.d("BrowserUtils", "Intent can be handled: " + canHandle);
+        return canHandle;
     }
 }

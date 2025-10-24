@@ -3,6 +3,7 @@ package com.example.helloworld;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -135,7 +136,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
                     Toast.makeText(this, "Opened with ephemeral browsing", Toast.LENGTH_SHORT).show();
                     return;
                 } catch (Exception e) {
-                    Toast.makeText(this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("MainActivity", "Ephemeral browsing failed", e);
+                    Toast.makeText(this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
             
@@ -152,7 +154,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
                                 customTabsIntent.launchUrl(MainActivity.this, uri);
                                 Toast.makeText(MainActivity.this, "Opened with ephemeral browsing (via service)", Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
-                                Toast.makeText(MainActivity.this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Log.e("MainActivity", "Ephemeral browsing failed (via service)", e);
+                                Toast.makeText(MainActivity.this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                 launchRegularCustomTab(builder, uri);
                             }
                         } else {
@@ -187,7 +190,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
             
             customTabsIntent.launchUrl(this, uri);
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to open Custom Tab, opening in browser", Toast.LENGTH_SHORT).show();
+            Log.e("MainActivity", "Failed to open Custom Tab", e);
+            Toast.makeText(this, "Failed to open Custom Tab: " + e.getMessage(), Toast.LENGTH_LONG).show();
             Intent fallbackIntent = BrowserUtils.getFallbackIntent(uri);
             if (BrowserUtils.canHandleIntent(this, fallbackIntent)) {
                 startActivity(fallbackIntent);
@@ -230,7 +234,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
                     Toast.makeText(this, "Opened Auth-optimized Tab with ephemeral browsing", Toast.LENGTH_SHORT).show();
                     return;
                 } catch (Exception e) {
-                    Toast.makeText(this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("MainActivity", "Ephemeral Auth Tab failed", e);
+                    Toast.makeText(this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
             
@@ -247,7 +252,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
                                 customTabsIntent.launchUrl(MainActivity.this, uri);
                                 Toast.makeText(MainActivity.this, "Opened Auth-optimized Tab with ephemeral browsing (via service)", Toast.LENGTH_SHORT).show();
                             } catch (Exception e) {
-                                Toast.makeText(MainActivity.this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Log.e("MainActivity", "Ephemeral Auth Tab failed (via service)", e);
+                                Toast.makeText(MainActivity.this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                                 launchRegularAuthTab(builder, uri);
                             }
                         } else {
@@ -283,7 +289,8 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
             customTabsIntent.launchUrl(this, uri);
             Toast.makeText(this, "Opened Auth-optimized Tab", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "Auth Tab failed, using Custom Tab instead", Toast.LENGTH_SHORT).show();
+            Log.e("MainActivity", "Auth Tab failed", e);
+            Toast.makeText(this, "Auth Tab failed: " + e.getMessage() + ", using Custom Tab instead", Toast.LENGTH_LONG).show();
             openCustomTab(uri, false); // Fallback without ephemeral to avoid infinite loop
         }
     }
