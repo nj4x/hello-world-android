@@ -5,6 +5,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -46,9 +47,9 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
         if (data != null) {
             String webResult = data.getQueryParameter("result");
             String username = data.getQueryParameter("username");
-            
+
             Toast.makeText(this, "Received URL: " + data.toString(), Toast.LENGTH_LONG).show();
-            
+
             if (webResult != null && username != null) {
                 // Returning from web app with result
                 Toast.makeText(this, "Showing result: " + webResult, Toast.LENGTH_LONG).show();
@@ -83,8 +84,15 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
 
     private void openWebApp(String username) {
         // URL to your deployed Next.js web app on Vercel
-        String webAppUrl = "https://hello-world-web-ivory.vercel.app/process?username=" + username + "&returnApp=helloworld://result";
-        
+//        String webAppUrl = "https://hello-world-web-ivory.vercel.app/process?username=" + username + "&returnApp=helloworld://result";
+        String webAppUrl = "https://stg-account.samsung.com/business/iam/oauth2/authorize" +
+                "?login_hint=" + username +
+                "&response_type=code" +
+                "&state=0oawjam8o0Fb94d6d697" +
+                "&client_id=m5ri0onns6" +
+                "&redirect_uri=helloworld://result" +
+                "&scope=offline_access+openid";
+
         CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
                 .setToolbarColor(ContextCompat.getColor(this, R.color.purple_500))
                 .setSecondaryToolbarColor(ContextCompat.getColor(this, R.color.purple_700))
