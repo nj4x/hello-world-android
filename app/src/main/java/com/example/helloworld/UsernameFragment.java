@@ -5,20 +5,46 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class UsernameFragment extends Fragment {
 
     private TextInputEditText usernameInput;
     private Button nextButton;
+    private RadioGroup tabTypeRadioGroup;
+    private RadioButton customTabRadio;
+    private RadioButton authTabRadio;
+    private SwitchMaterial ephemeralSwitch;
     private OnUsernameSubmittedListener listener;
 
+    public enum TabType {
+        CUSTOM_TAB,
+        AUTH_TAB
+    }
+
+    public static class TabConfig {
+        public final String username;
+        public final TabType tabType;
+        public final boolean isEphemeral;
+
+        public TabConfig(String username, TabType tabType, boolean isEphemeral) {
+            this.username = username;
+            this.tabType = tabType;
+            this.isEphemeral = isEphemeral;
+        }
+    }
+
     public interface OnUsernameSubmittedListener {
-        void onUsernameSubmitted(String username);
+        void onUsernameSubmitted(TabConfig config);
     }
 
     public void setOnUsernameSubmittedListener(OnUsernameSubmittedListener listener) {
@@ -32,6 +58,10 @@ public class UsernameFragment extends Fragment {
         
         usernameInput = view.findViewById(R.id.usernameInput);
         nextButton = view.findViewById(R.id.nextButton);
+        tabTypeRadioGroup = view.findViewById(R.id.tabTypeRadioGroup);
+        customTabRadio = view.findViewById(R.id.customTabRadio);
+        authTabRadio = view.findViewById(R.id.authTabRadio);
+        ephemeralSwitch = view.findViewById(R.id.ephemeralSwitch);
         
         nextButton.setOnClickListener(v -> handleNextClick());
         
@@ -46,8 +76,11 @@ public class UsernameFragment extends Fragment {
             return;
         }
 
+        TabType tabType = customTabRadio.isChecked() ? TabType.CUSTOM_TAB : TabType.AUTH_TAB;
+        boolean isEphemeral = ephemeralSwitch.isChecked();
+
         if (listener != null) {
-            listener.onUsernameSubmitted(username);
+            listener.onUsernameSubmitted(new TabConfig(username, tabType, isEphemeral));
         }
     }
 }

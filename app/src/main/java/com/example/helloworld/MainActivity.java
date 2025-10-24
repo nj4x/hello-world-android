@@ -1,16 +1,16 @@
 package com.example.helloworld;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.browser.customtabs.CustomTabColorSchemeParams;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 public class MainActivity extends AppCompatActivity implements UsernameFragment.OnUsernameSubmittedListener {
 
@@ -61,10 +61,15 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
         }
     }
 
+
+
     @Override
-    public void onUsernameSubmitted(String username) {
-        Toast.makeText(this, "Hello " + username + "! Opening web page...", Toast.LENGTH_SHORT).show();
-        openWebApp(username);
+    public void onUsernameSubmitted(UsernameFragment.TabConfig config) {
+        String tabTypeText = config.tabType == UsernameFragment.TabType.CUSTOM_TAB ? "Custom Tab" : "Auth Tab";
+        String ephemeralText = config.isEphemeral ? " (Ephemeral)" : "";
+        
+        Toast.makeText(this, "Hello " + config.username + "! Opening " + tabTypeText + ephemeralText + "...", Toast.LENGTH_SHORT).show();
+        openWebApp(config);
     }
 
     public void showUsernameFragment() {
@@ -82,14 +87,26 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
         transaction.commit();
     }
 
-    private void openWebApp(String username) {
-        // URL to your deployed Next.js web app on Vercel
-//        String webAppUrl = "https://hello-world-web-ivory.vercel.app/process?username=" + username + "&returnApp=helloworld://result";
-        
-        // Build OAuth URL using configuration class for better maintainability
-        String webAppUrl = OAuthConfig.buildAuthUrl(username);
+    private void openWebApp(UsernameFragment.TabConfig config) {
+        String webAppUrl = OAuthConfig.buildAuthUrl(config.username);
+        Uri uri = Uri.parse(webAppUrl);
 
-        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder()
+        if (config.tabType == UsernameFragment.TabType.AUTH_TAB) {
+            openAuthTab(uri, config.isEphemeral);
+        } else {
+            openCustomTab(uri, config.isEphemeral);
+        }
+    }
+
+    private void openCustomTab(Uri uri, boolean isEphemeral) {
+        // Check if Custom Tabs are supported
+        if (!BrowserUtils.isCustomTabsSupported(this)) {
+            Toast.makeText(this, "Custom Tabs not supported, opening in browser", Toast.LENGTH_SHORT).show();
+            startActivity(BrowserUtils.getFallbackIntent(uri));
+            return;
+        }
+
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder()
                 .setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder()
                         .setToolbarColor(ContextCompat.getColor(this, R.color.purple_500))
                         .setSecondaryToolbarColor(ContextCompat.getColor(this, R.color.purple_700))
@@ -97,9 +114,123 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
                 .setStartAnimations(this, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
                 .setExitAnimations(this, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
                 .setShowTitle(true)
-                .setUrlBarHidingEnabled(false)
-                .build();
+                .setUrlBarHidingEnabled(false);
 
-        customTabsIntent.launchUrl(this, Uri.parse(webAppUrl));
+        // Add ephemeral browsing if requested
+        if (isEphemeral) {
+            BrowserUtils.checkEphemeralBrowsingSupport(this, new BrowserUtils.EphemeralSupportCallback() {
+                @Override
+                public void onResult(boolean isSupported) {
+                    runOnUiThread(() -> {
+                        if (isSupported) {
+                            try {
+                                // Use the official API for ephemeral browsing
+                                CustomTabsIntent customTabsIntent = builder
+                                        .setEphemeralBrowsingEnabled(true)
+                                        .build();
+                                customTabsIntent.launchUrl(MainActivity.this, uri);
+                                Toast.makeText(MainActivity.this, "Opened with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(MainActivity.this, "Ephemeral browsing failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                launchRegularCustomTab(builder, uri);
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Ephemeral browsing not supported, using regular Custom Tab", Toast.LENGTH_SHORT).show();
+                            launchRegularCustomTab(builder, uri);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Error checking ephemeral support: " + error, Toast.LENGTH_SHORT).show();
+                        launchRegularCustomTab(builder, uri);
+                    });
+                }
+            });
+        } else {
+            launchRegularCustomTab(builder, uri);
+        }
+    }
+
+    private void launchRegularCustomTab(CustomTabsIntent.Builder builder, Uri uri) {
+        try {
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(this, uri);
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to open Custom Tab, opening in browser", Toast.LENGTH_SHORT).show();
+            startActivity(BrowserUtils.getFallbackIntent(uri));
+        }
+    }
+
+    private void openAuthTab(Uri uri, boolean isEphemeral) {
+        // Check if Auth Tab is supported first
+        if (!BrowserUtils.isAuthTabSupported(this)) {
+            Toast.makeText(this, "Auth Tab not supported, falling back to Custom Tab", Toast.LENGTH_SHORT).show();
+            openCustomTab(uri, isEphemeral);
+            return;
+        }
+
+        // Create a Custom Tab optimized for authentication flows
+        // This demonstrates Auth Tab concepts using available APIs
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder()
+                .setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder()
+                        .setToolbarColor(ContextCompat.getColor(this, R.color.purple_200))
+                        .setSecondaryToolbarColor(ContextCompat.getColor(this, R.color.purple_300))
+                        .build())
+                .setShowTitle(true)
+                .setUrlBarHidingEnabled(true) // Hide URL bar for auth flows
+                .setStartAnimations(this, android.R.anim.fade_in, android.R.anim.fade_out)
+                .setExitAnimations(this, android.R.anim.fade_in, android.R.anim.fade_out)
+                .setShareState(CustomTabsIntent.SHARE_STATE_OFF); // Disable sharing for auth flows
+
+        // Add ephemeral browsing if requested
+        if (isEphemeral) {
+            BrowserUtils.checkEphemeralBrowsingSupport(this, new BrowserUtils.EphemeralSupportCallback() {
+                @Override
+                public void onResult(boolean isSupported) {
+                    runOnUiThread(() -> {
+                        if (isSupported) {
+                            try {
+                                // Use the official API for ephemeral browsing with auth-optimized tab
+                                CustomTabsIntent customTabsIntent = builder
+                                        .setEphemeralBrowsingEnabled(true)
+                                        .build();
+                                customTabsIntent.launchUrl(MainActivity.this, uri);
+                                Toast.makeText(MainActivity.this, "Opened Auth-optimized Tab with ephemeral browsing", Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                Toast.makeText(MainActivity.this, "Ephemeral Auth Tab failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                launchRegularAuthTab(builder, uri);
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Ephemeral browsing not supported, using regular Auth Tab", Toast.LENGTH_SHORT).show();
+                            launchRegularAuthTab(builder, uri);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Error checking ephemeral support: " + error, Toast.LENGTH_SHORT).show();
+                        launchRegularAuthTab(builder, uri);
+                    });
+                }
+            });
+        } else {
+            launchRegularAuthTab(builder, uri);
+        }
+    }
+
+    private void launchRegularAuthTab(CustomTabsIntent.Builder builder, Uri uri) {
+        try {
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(this, uri);
+            Toast.makeText(this, "Opened Auth-optimized Tab", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Auth Tab failed, using Custom Tab instead", Toast.LENGTH_SHORT).show();
+            openCustomTab(uri, false); // Fallback without ephemeral to avoid infinite loop
+        }
     }
 }
