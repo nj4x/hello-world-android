@@ -39,7 +39,8 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/username_hint"
                 android:inputType="text"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:text="admin@gedu.demo.nj4x.com" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Tab Type Selection -->
@@ -69,16 +70,17 @@
                 android:id="@+id/customTabRadio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Custom Tabs"
-                android:checked="true"
-                android:buttonTint="@color/purple_500" />
+                android:buttonTint="@color/purple_500"
+                android:checked="false"
+                android:text="Custom Tabs" />
 
             <RadioButton
                 android:id="@+id/authTabRadio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Auth Tabs"
-                android:buttonTint="@color/purple_500" />
+                android:buttonTint="@color/purple_500"
+                android:checked="true"
+                android:text="Auth Tabs" />
         </RadioGroup>
 
         <!-- Ephemeral Browsing Toggle -->
@@ -99,12 +101,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:checked="true"
             android:text="Ephemeral Browsing"
             android:textColor="@android:color/black"
-            app:thumbTint="@color/purple_500"
-            app:trackTint="@color/purple_200"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ephemeralLabel" />
+            app:layout_constraintTop_toBottomOf="@+id/ephemeralLabel"
+            app:thumbTint="@color/purple_500"
+            app:trackTint="@color/purple_200" />
 
         <TextView
             android:id="@+id/ephemeralDescription"

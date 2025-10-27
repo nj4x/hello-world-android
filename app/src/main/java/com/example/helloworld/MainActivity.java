@@ -48,17 +48,17 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
     private void handleIncomingIntent() {
         Uri data = getIntent().getData();
         if (data != null) {
-            String webResult = data.getQueryParameter("result");
-            String username = data.getQueryParameter("username");
+            String state = data.getQueryParameter("state");
+            String code = data.getQueryParameter("code");
 
             Toast.makeText(this, "Received URL: " + data, Toast.LENGTH_LONG).show();
 
-            if (webResult != null && username != null) {
+            if (state != null && code != null) {
                 // Returning from web app with result
-                Toast.makeText(this, "Showing result: " + webResult, Toast.LENGTH_LONG).show();
-                showResultFragment(username, webResult);
+                Toast.makeText(this, "Showing result: " + code, Toast.LENGTH_LONG).show();
+                showResultFragment(code, state);
             } else {
-                Toast.makeText(this, "Missing data - username: " + username + ", result: " + webResult, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Missing data - code: " + code + ", state: " + state, Toast.LENGTH_LONG).show();
             }
         }
     }

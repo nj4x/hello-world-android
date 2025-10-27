@@ -3,10 +3,10 @@
     <string name="enter_username">Enter Username</string>
     <string name="username_hint">Username</string>
     <string name="next">Next</string>
-    <string name="result_title">Result from Web</string>
+    <string name="result_title">OAuth2 authorization result</string>
     <string name="back">Back to Start</string>
-    <string name="username_label">Username: %1$s</string>
-    <string name="result_label">Result from web: %1$s</string>
+    <string name="username_label">Code: %1$s</string>
+    <string name="result_label">State: %1$s</string>
     <string name="username_prefix">Username: </string>
-    <string name="result_prefix">Result from web: </string>
+    <string name="result_prefix">State: </string>
 </resources>
