@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Hello World</string>
-    <string name="enter_username">Enter Username</string>
+    <string name="enter_username">Select application paramsEnter Username</string>
     <string name="username_hint">Username</string>
     <string name="next">Next</string>
     <string name="result_title">OAuth2 authorization result</string>
