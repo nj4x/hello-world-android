@@ -71,6 +71,14 @@ public class UsernameFragment extends Fragment {
     private void handleNextClick() {
         String username = usernameInput.getText().toString().trim();
         
+        // Special case for Google Classroom integration
+        if (username.equals("google_classroom")) {
+            if (listener != null) {
+                listener.onUsernameSubmitted(new TabConfig(username, TabType.CUSTOM_TAB, false));
+            }
+            return;
+        }
+        
         if (username.isEmpty()) {
             Toast.makeText(getContext(), "Please enter a username", Toast.LENGTH_SHORT).show();
             return;

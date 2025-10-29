@@ -14,8 +14,13 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.api.services.classroom.Classroom;
+
 public class MainActivity extends AppCompatActivity implements UsernameFragment.OnUsernameSubmittedListener {
 
+    private static final int RC_SIGN_IN = 9001;
+    
     private UsernameFragment usernameFragment;
     private ResultFragment resultFragment;
 
@@ -70,8 +75,58 @@ public class MainActivity extends AppCompatActivity implements UsernameFragment.
         String tabTypeText = config.tabType == UsernameFragment.TabType.CUSTOM_TAB ? "Custom Tab" : "Auth Tab";
         String ephemeralText = config.isEphemeral ? " (Ephemeral)" : "";
         
+        // Check if this is a Google Classroom request
+        if (config.username != null && config.username.equals("google_classroom")) {
+            signInToGoogle();
+            return;
+        }
+        
         Toast.makeText(this, "Hello " + config.username + "! Opening " + tabTypeText + ephemeralText + "...", Toast.LENGTH_SHORT).show();
         openWebApp(config);
+    }
+    
+    /**
+     * Start Google Sign-In flow for Classroom API access
+     */
+    private void signInToGoogle() {
+        Toast.makeText(this, "Signing in to Google...", Toast.LENGTH_SHORT).show();
+        Intent signInIntent = GoogleOAuthUtils.getGoogleSignInClient(this).getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInClient
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInAccount account = GoogleOAuthUtils.handleSignInResult(data);
+            if (account != null) {
+                Toast.makeText(this, "Google Sign-In successful: " + account.getEmail(), Toast.LENGTH_LONG).show();
+                // You can now use the account to access Google Classroom API
+                accessClassroomAPI(account);
+            } else {
+                Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    
+    /**
+     * Access Google Classroom API with the signed-in account
+     */
+    private void accessClassroomAPI(GoogleSignInAccount account) {
+        // Get credential for API access
+        com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential credential = 
+            GoogleOAuthUtils.getGoogleAccountCredential(this, account);
+        
+        // Get Classroom service
+        Classroom service = GoogleOAuthUtils.getClassroomService(credential);
+        
+        // Example: List courses (this would typically be done in a background thread)
+        Toast.makeText(this, "Accessing Classroom API with account: " + account.getEmail(), Toast.LENGTH_LONG).show();
+        
+        // For demonstration, we'll just show the account info
+        showResultFragment(account.getEmail(), "Google Classroom API Access Ready");
     }
 
     public void showUsernameFragment() {

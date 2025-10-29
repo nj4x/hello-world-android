@@ -19,6 +19,13 @@ android {
         buildConfigField "String", "OAUTH_STATE", '"0oawjam8o0Fb94d6d697"'
         buildConfigField "String", "OAUTH_REDIRECT_URI", '"helloworld://result"'
         buildConfigField "String", "OAUTH_SCOPE", '"offline_access+openid"'
+        
+        // Google OAuth Configuration
+        buildConfigField "String", "GOOGLE_OAUTH_CLIENT_ID", '"260329716136-o9b3gto8araqpb75h65718g0guohgc0n.apps.googleusercontent.com"'
+        buildConfigField "String", "GOOGLE_OAUTH_REDIRECT_URI", '"com.example.helloworld:/oauth2redirect"'
+        
+        // Google Classroom API Scopes
+        buildConfigField "String", "GOOGLE_CLASSROOM_SCOPES", '"openid email profile https://www.googleapis.com/auth/classroom.addons.teacher https://www.googleapis.com/auth/classroom.addons.student https://www.googleapis.com/auth/classroom.announcements https://www.googleapis.com/auth/classroom.courses https://www.googleapis.com/auth/classroom.coursework.me https://www.googleapis.com/auth/classroom.coursework.students https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.guardianlinks.students https://www.googleapis.com/auth/classroom.profile.emails https://www.googleapis.com/auth/classroom.profile.photos https://www.googleapis.com/auth/classroom.push-notifications https://www.googleapis.com/auth/classroom.rosters https://www.googleapis.com/auth/classroom.topics"'
     }
 
     buildTypes {
@@ -36,6 +43,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+    
+    packaging {
+        resources {
+            excludes += ['META-INF/INDEX.LIST', 'META-INF/*.md']
+            pickFirsts += ['META-INF/DEPENDENCIES']
+        }
+    }
 }
 
 dependencies {
@@ -45,4 +59,14 @@ dependencies {
     // Note: For ephemeral browsing support, use browser:1.9.0-alpha05 or later
     // Current stable version supports the static API for Chrome 137+
     implementation 'androidx.browser:browser:1.9.0'
+    
+    // Google API Client Library for Java
+    implementation 'com.google.api-client:google-api-client:2.8.1'
+    implementation 'com.google.api-client:google-api-client-android:2.8.1'
+    implementation 'com.google.apis:google-api-services-classroom:v1-rev20220323-2.0.0'
+    implementation 'com.google.oauth-client:google-oauth-client:1.39.0'
+    implementation 'com.google.http-client:google-http-client-android:2.0.2'
+    
+    // Google Sign-In for Android
+    implementation 'com.google.android.gms:play-services-auth:21.4.0'
 }
